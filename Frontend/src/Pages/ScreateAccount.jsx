@@ -2,13 +2,11 @@ import {
   Box,
   Input,
   Text,
-  FormControl,
   FormLabel,
-  FormHelperText,
   Checkbox,
   Button,
-  Link,
   Image,
+  useToast,
 } from "@chakra-ui/react";
 import React, { useEffect } from "react";
 import { AiFillApple } from "react-icons/ai"; // FcGoogle
@@ -16,30 +14,53 @@ import { FcGoogle } from "react-icons/fc";
 import { AiFillFacebook } from "react-icons/ai";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Signigfun } from "../Redux/Auth-reducer/action";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { Createaccount } from "../Redux/Auth-reducer/action";
 
-export default function S_SignIn() {
-  const navigate = useNavigate()
+export default function CreateAccount() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const createAccountError = useSelector(
+    (data) => data.AuthReducer.createAccountError
+  );
 
-  const isAuth = useSelector(data => data.AuthReducer.isAuth)
-  const isError = useSelector(data => data.AuthReducer.isError)
+  const successfullyCreated = useSelector(
+    (data) => data.AuthReducer.successfullyCreated
+  );
+  const toast = useToast();
+  const errorData = useSelector((data) => data.AuthReducer.errorData);
 
   function SendSignInRequest() {
-    if (email !== "" && password !== "") {
-      dispatch(Signigfun({ email: email, password: password }));
-    }
+    dispatch(
+      Createaccount({
+        email: email,
+        password: password,
+        firstName: firstName,
+        lastName: lastName,
+      })
+    );
   }
 
-  useEffect(()=>{
-    if(isAuth){
-      navigate('/')
+  useEffect(() => {
+    if (successfullyCreated) {
+      toast({
+        title: `Account Created Successfull`,
+        status: "success",
+        duration: 700,
+        position: "top",
+        isClosable: true,
+      });
+      // alert("Your Account Sucessfully Created");
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
     }
-  },[isAuth])
-  
+  }, [successfullyCreated]);
+
   return (
     <Box>
       <Box
@@ -55,37 +76,73 @@ export default function S_SignIn() {
           src="https://www.expedia.com/_dms/header/logo.svg?locale=en_US&siteid=1"
         />
       </Box>
+
       <Box
         margin={"auto"}
-        w={"30%"}
-        h={"600px"}
-        // border={"1px solid black"}
+        w={{ base: "90%", md: "80%", lg: "30%" }}
+        // border={"1px solid red"}
         marginTop={"40px"}
       >
         <Box mb={"20px"}>
           <Text fontSize={"4xl"} fontWeight={"600"}>
-            Sign in
+            Create an account
           </Text>
         </Box>
-        <Box mb={"30px"}>
+        <Box mb={"20px"}>
           <FormLabel>Enter Email</FormLabel>
           <Input
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email Address"
+            placeholder="Email address"
             w={"100%"}
             h={"55px"}
             border={`2px solid`}
             type={"email"}
           />
-          { !isError && email === "" ? (
-            <FormLabel color={"red.400"}>Email is required.</FormLabel>
-          ) : (
-            <FormLabel></FormLabel>
-          )}
-          {
-            isError ? <FormLabel color={"red"}>User is not registered</FormLabel>: <FormLabel></FormLabel>
-          }
+          {createAccountError &&
+            errorData
+              .filter((e) => {
+                return e.param === "email";
+              })
+              .map((e, i) => (
+                <FormLabel key={i} mt={"5px"} color={"red"}>
+                  {e.msg}
+                </FormLabel>
+              ))}
         </Box>
+        <Box mb={"20px"}>
+          <FormLabel>Enter First name</FormLabel>
+          <Input
+            onChange={(e) => setFirstName(e.target.value)}
+            placeholder="First name"
+            w={"100%"}
+            h={"55px"}
+            border={`2px solid`}
+            type={"text"}
+          />
+          {createAccountError &&
+            errorData
+              .filter((e) => {
+                return e.param === "firstName";
+              })
+              .map((e, i) => (
+                <FormLabel key={i} mt={"5px"} color={"red"}>
+                  {e.msg}
+                </FormLabel>
+              ))}
+        </Box>
+        {/* last name */}
+        <Box mb={"20px"}>
+          <FormLabel>Enter Last name</FormLabel>
+          <Input
+            onChange={(e) => setLastName(e.target.value)}
+            placeholder="Last name"
+            w={"100%"}
+            h={"55px"}
+            border={`2px solid`}
+            type={"text"}
+          />
+        </Box>
+        {/* password */}
         <Box mb={"20px"}>
           <FormLabel>Enter Password</FormLabel>
           <Input
@@ -96,11 +153,16 @@ export default function S_SignIn() {
             border={`2px solid`}
             type={"password"}
           />
-          {password === "" ? (
-            <FormLabel color={"red.400"}>Password is required.</FormLabel>
-          ) : (
-            <FormLabel></FormLabel>
-          )}
+          {createAccountError &&
+            errorData
+              .filter((e) => {
+                return e.param === "password";
+              })
+              .map((e, i) => (
+                <FormLabel key={i} mt={"5px"} color={"red"}>
+                  {e.msg}
+                </FormLabel>
+              ))}
         </Box>
         <Box mb={"20px"}>
           <Checkbox size={"lg"} defaultChecked>
@@ -138,14 +200,20 @@ export default function S_SignIn() {
           </Button>
         </Box>
         <Box mt={"15px"} display="flex" justifyContent={"center"}>
-          <Link color={"blue"}>Forgot password?</Link>
+          {/* < style={{}}>Forgot password?</> */}
+          <Link to={""} style={{ color: "blue" }}>
+            Forgot password?
+          </Link>
         </Box>
         <Box mt={"15px"} display="flex" justifyContent={"center"}>
-          <label htmlFor="">Don't have an account? </label>
+          <label htmlFor="">Already have an account? </label>
           <label style={{ color: "white" }} htmlFor="">
             o
           </label>
-          <Link onClick={()=>navigate('/create_account')} style={{ color: "blue", cursor: "pointer" }}> Create one</Link>
+          <Link to={"/signin"} style={{ color: "blue" }}>
+            {" "}
+            Sign In
+          </Link>
         </Box>
         <Box mt={"25px"} display="flex" justifyContent={"center"}>
           <label htmlFor="">or continue with</label>

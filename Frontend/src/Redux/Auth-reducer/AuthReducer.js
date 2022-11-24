@@ -1,4 +1,3 @@
-import { StatLabel } from "@chakra-ui/react";
 import {
   CREATE_FAILURE,
   CREATE_REQUEST,
@@ -16,7 +15,6 @@ const signInData = {
   isLooding: false,
   isError: false,
 
-  
   successfullyCreated: false,
   createAccountLooding: false,
   createAccountError: false,
@@ -38,12 +36,15 @@ export const AuthReducer = (state = signInData, action) => {
         isAuth: true,
         token: payload.token,
         userData: payload.data,
+        isError: false,
       };
     case SIGNIN_FAILURE:
       return {
         ...state,
+        isAuth: false,
         isLooding: false,
         isError: true,
+        errorData: payload,
       };
     case CREATE_REQUEST:
       return {
@@ -56,7 +57,6 @@ export const AuthReducer = (state = signInData, action) => {
         createAccountLooding: false,
         successfullyCreated: true,
         createAccountError: false,
-        isAuth: true,
         userData: payload,
       };
     case CREATE_FAILURE:
@@ -65,6 +65,7 @@ export const AuthReducer = (state = signInData, action) => {
         createAccountLooding: false,
         successfullyCreated: false,
         createAccountError: true,
+        isAuth: false,
         errorData: payload,
       };
     case SIGNOUT:
